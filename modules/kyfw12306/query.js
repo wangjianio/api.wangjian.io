@@ -289,15 +289,8 @@ function getLastTimeText(seconds) {
   const lastHour = Math.floor(seconds / 3600);
   const lastMin = Math.floor(seconds % 3600 / 60);
 
-  let lastHourText;
-  let lastMinText;
-
-  if (lastHour) {
-    lastHourText = lastHour + '小时';
-  }
-  if (lastMin) {
-    lastMinText = lastMin + '分钟';
-  }
+  const lastHourText = lastHour ? lastHour + '小时' : '';
+  const lastMinText = lastMin ? lastMin + '分钟' : '';
 
   return lastHourText + lastMinText;
 }

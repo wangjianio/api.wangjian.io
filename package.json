@@ -1,0 +1,22 @@
+{
+  "name": "api.wangjian.io",
+  "version": "1.0.0",
+  "description": "https://api.wangjian.io/",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangjianio/api.wangjian.io.git"
+  },
+  "author": "Wang Jian",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wangjianio/api.wangjian.io/issues"
+  },
+  "homepage": "https://github.com/wangjianio/api.wangjian.io#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "moment": "^2.20.1",
+    "mysql": "^2.15.0"
+  }
+}

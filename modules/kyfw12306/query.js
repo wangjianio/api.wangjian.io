@@ -261,7 +261,7 @@ function execResult(array, fromStationName, toStationName, trainDate) {
   });
 
   const startDateStamp = new Date(trainDate).getTime();
-  const arriveDateStamp = startDateStamp + 3600 * day;
+  const arriveDateStamp = startDateStamp + 24 * 3600 * 1000 * day;
 
   const startDate = moment(startDateStamp).format('YYYY-MM-DD');
   const arriveDate = moment(arriveDateStamp).format('YYYY-MM-DD');

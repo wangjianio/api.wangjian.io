@@ -3,7 +3,7 @@ const cp = require('child_process');
 const { log } = require('../../utils');
 
 function update(req, res) {
-  const secret = fs.readFileSync('../../../../github.secret');
+  const secret = fs.readFileSync('../github.secret', { encoding: 'utf-8' });
   const signature = req.headers['x-hub-signature'];
 
   console.log(secret, signature);

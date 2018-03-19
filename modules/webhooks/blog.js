@@ -10,6 +10,7 @@ function update(req, res) {
   if (signature === secret) {
     const output = cp.execSync('cd ../blog/; ls', { encoding: 'utf-8' });
     log('webhooks', { output, req: req.headers });
+    console.log('success');
   }
 
   res.send();

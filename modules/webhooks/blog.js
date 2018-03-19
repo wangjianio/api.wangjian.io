@@ -4,12 +4,13 @@ const { log } = require('../../utils');
 
 function update(req, res) {
   const secret = fs.readFileSync('../github.secret', { encoding: 'utf-8' });
-  const signature = req.headers['x-hub-signature'];
+  const { s } = req.query;
 
-  console.log(secret, signature);
-  if (signature === secret) {
+  console.log(s, secret);
+
+  if (s === secret) {
     const output = cp.execSync('cd ../blog/; ls', { encoding: 'utf-8' });
-    log('webhooks', { output, req: req.headers });
+    log('webhooks', { output });
     console.log('success');
   }
 

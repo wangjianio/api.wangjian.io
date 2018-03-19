@@ -15,8 +15,14 @@
   },
   "homepage": "https://github.com/wangjianio/api.wangjian.io#readme",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "moment": "^2.20.1",
     "mysql": "^2.15.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "logs/"
+    ]
   }
 }

@@ -11,6 +11,17 @@ module.exports = (path, obj) => {
     ...obj,
   }
 
+  // log 不提交到 git，在此创建日志文件夹
+  if (!fs.existsSync('logs')) {
+    fs.mkdirSync('logs');
+  }
+
+  if (!fs.existsSync('logs/' + path)) {
+    fs.mkdirSync('logs/' + path);
+  }
+
+
+  // 文件路径 logs/project/2018-01.json
   const file = 'logs/' + path + '/' + year + '-' + pad(month) + '.json';
   const data = JSON.stringify(newObj) + ',\n';
   const options = {

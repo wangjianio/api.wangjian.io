@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "https://api.wangjian.io/",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "start": "node index.js",
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wangjianio/api.wangjian.io.git"
@@ -18,7 +20,8 @@
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "moment": "^2.20.1",
-    "mysql": "^2.15.0"
+    "mysql": "^2.15.0",
+    "nodemailer": "^4.6.7"
   },
   "nodemonConfig": {
     "ignore": [

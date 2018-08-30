@@ -15,4 +15,8 @@ module.exports = app => {
   app.post('/webhooks/blog/update', (req, res) => {
     webhooks.blog.update(req, res);
   });
+
+  app.post('/webhooks/git/pull', (req, res) => {
+    webhooks.git.pull(req, res);
+  });
 }

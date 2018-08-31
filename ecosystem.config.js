@@ -26,11 +26,11 @@ module.exports = {
       ref: 'origin/master',
       repo: 'https://github.com/wangjianio/api.wangjian.io.git',
       path: '/etc/node/test',
-      // 'pre-setup': "",
-      // "post-setup": "",
-      'pre-deploy': 'cd ~; mkdir pre-deploy; pwd > 2',
-      'pre-deploy-local': 'cd ~; mkdir pre-deploy-local; pwd > 3',
-      'post-deploy': 'mkdir post-deploy; pwd > 4',
+      // 'pre-setup': '',
+      // "post-setup": '',
+      // 'pre-deploy': '',
+      // 'pre-deploy-local': '',
+      'post-deploy': 'npm install && pm2 restart ecosystem.json --env production',
     }
   }
 };

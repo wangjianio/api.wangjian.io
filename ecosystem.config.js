@@ -26,9 +26,10 @@ module.exports = {
       ref: 'origin/master',
       repo: 'https://github.com/wangjianio/api.wangjian.io.git',
       path: '/etc/node/test',
-      'pre-setup': "cd /etc/node; mkdir pre-setup; pwd > 1",
-      "post-setup": "mkdir post-setup; pwd > 2",
-      'pre-deploy-local': 'mkdir pre-deploy-local; pwd > 3',
+      // 'pre-setup': "",
+      // "post-setup": "",
+      'pre-deploy': 'cd ~; mkdir pre-deploy; pwd > 2',
+      'pre-deploy-local': 'cd ~; mkdir pre-deploy-local; pwd > 3',
       'post-deploy': 'mkdir post-deploy; pwd > 4',
     }
   }

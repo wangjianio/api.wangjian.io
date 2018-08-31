@@ -20,12 +20,14 @@ module.exports = {
 
   deploy: {
     production: {
-      user: 'node',
-      host: '212.83.163.1',
+      key: '~/.ssh/qcloud',
+      user: 'root',
+      host: '118.25.91.225',
       ref: 'origin/master',
-      repo: 'git@github.com:repo.git',
-      path: '/var/www/production',
-      'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production'
+      repo: 'https://github.com/wangjianio/api.wangjian.io.git',
+      path: '/etc/node/test',
+      "post-setup": "mkdir psetup",
+      'post-deploy': 'mkdir pdeploy'
     }
   }
 };

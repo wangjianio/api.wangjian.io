@@ -8,14 +8,15 @@ module.exports = {
     env_production: {
       NODE_ENV: 'production',
     },
-    watch: true,
-    watch_options: {
+    // watch: true,
+    // watch_options: {
       // awaitWriteFinish: true,
-    },
-    ignore_watch: [
-      'node_modules/',
-      'logs/',
-    ],
+    // },
+    // ignore_watch: [
+    //   'node_modules/',
+    //   'logs/',
+    //   '.DS_Store'
+    // ],
   }],
 
   deploy: {

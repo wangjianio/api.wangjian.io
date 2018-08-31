@@ -1,3 +1,4 @@
+// 已废弃
 const config = require('../../../config.json');
 const cp = require('child_process');
 const { log } = require('../../utils');

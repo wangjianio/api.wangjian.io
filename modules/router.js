@@ -17,9 +17,10 @@ module.exports = app => {
     webhooks.blog.update(req, res);
   });
 
-  app.post('/webhooks/git/pull', (req, res) => {
-    webhooks.git.pull(req, res);
-  });
+  // 弃用
+  // app.post('/webhooks/git/pull', (req, res) => {
+  //   webhooks.git.pull(req, res);
+  // });
 
   app.get('/admin/cat', (req, res) => {
     admin.cat(req, res);

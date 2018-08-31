@@ -7,7 +7,7 @@ function pull(req, res) {
   const { s } = req.query;
 
   if (s === config.github.secret) {
-    const output = cp.execSync('git pull', { encoding: 'utf-8' });
+    const output = cp.execSync('git pull');
     log('webhooks', { path: route.path, output });
 
     res.send(JSON.stringify({

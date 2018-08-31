@@ -1,60 +1,65 @@
 const https = require('https');
 const fs = require('fs');
 const moment = require('moment');
+const sendMail = require('../mail/send');
 
 
+module.exports = (request, response) => {
 
-module.exports = (req, res) => {
+  const { query } = request;
 
-  const { query } = req;
-  const response = res;
+  console.log(JSON.stringify(query));
 
-  console.log(query);
+  const SMS_INFO = {
+    train: query.train_code,
+    from: query.from_station_name,
+    to: query.to_station_name,
+    date: query.train_date,
+  }
 
-  /**
-   * 车次。
-   * 来源：短信。
-   * @type {string}
-   */
-  const trainCode = query.train_code;
+  if (!SMS_INFO.train || !SMS_INFO.from || !SMS_INFO.to || !SMS_INFO.date) {
+    const missed = [];
 
-  /**
-   * 出发车站。
-   * 来源：短信。
-   * @type {string}
-   */
-  const fromStationName = query.from_station_name;
+    !SMS_INFO.train && missed.push('train_code');
+    !SMS_INFO.from && missed.push('from_station_name');
+    !SMS_INFO.to && missed.push('to_station_name');
+    !SMS_INFO.date && missed.push('train_date');
 
-  /**
-   * 到达车站。
-   * 来源：用户根据极速API选择或手动输入。
-   * @type {string}
-   */
-  const toStationName = query.to_station_name;
+    sendMail('【api.wangjian.io/12306】错误传参', `${decodeURI(request.url)}\n${request.headers['user-agent']}`);
 
-  /**
-   * 出发日期。
-   * 来源：短信。
-   * @type {string}
-   */
-  const trainDate = query.train_date;
+    return response.send(JSON.stringify({
+      statusCode: 4001,
+      message: `Miss params: ${missed.join(', ')}`,
+    }));
+  }
 
 
-  // 根据 stationName 获取 stationTelecode
-  const fromStationTelecode = getStationTelecode(fromStationName);
-  const toStationTelecode = getStationTelecode(toStationName);
+  const fromStationTelecode = getStationTelecode(SMS_INFO.from);
+  const toStationTelecode = getStationTelecode(SMS_INFO.to);
+
+  if (!fromStationTelecode || !toStationTelecode) {
+    const missed = [];
+
+    !fromStationTelecode && missed.push(SMS_INFO.from);
+    !toStationTelecode && missed.push(SMS_INFO.to);
+
+    sendMail('【api.wangjian.io/12306】telecode 获取失败', `${missed.join(', ')}\n${decodeURI(request.url)}\n${request.headers['user-agent']}`);
+
+    return response.send(JSON.stringify({
+      statusCode: 4002,
+      message: `Wrong station_name: ${missed.join(', ')}`,
+    }));
+  }
+
 
   // 获取 trainNo
-  getTrainNo(trainDate, fromStationTelecode, toStationTelecode, trainCode).then(res => {
-    return res;
-  }, err => {
-    throw err
-  }).then(trainNo => {
-    getResult(trainDate, fromStationTelecode, toStationTelecode, trainNo).then(res => {
+  getTrainNo(SMS_INFO.date, fromStationTelecode, toStationTelecode, SMS_INFO.train).then(res => res, err => { throw err })
+    .then(trainNo => {
+      getResult(SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo).then(res => {
       const json = JSON.parse(res);
       if (json.data.data) {
-        const result = execResult(json.data.data, fromStationName, toStationName, trainDate);
-        console.log(result);
+          const result = execResult(json.data.data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
+          console.log(JSON.stringify(result));
         response.send(JSON.stringify(result));
       } else {
         console.log('数据有误');
@@ -66,14 +71,14 @@ module.exports = (req, res) => {
     }, err => {
       console.log(err);
       response.send(JSON.stringify({
-        statusCode: 400,
+          statusCode: 5000,
         message: err,
       }));
     });
   }, err => {
     console.log(err);
     response.send(JSON.stringify({
-      statusCode: 400,
+        statusCode: 5001,
       message: err,
     }));
   });
@@ -81,14 +86,15 @@ module.exports = (req, res) => {
 
 
 /**
- * 获取 stationTelecode。
- * @param {string} stationName
- * @returns {string} stationTelecode。
+ * * * * * * * * * * * 函数们 * * * * * * * * * *
  */
+
+
 function getStationTelecode(stationName) {
   if (!stationName) {
-    return console.log('getStationTelecode: 缺少参数。');
+    throw new Error('getStationTelecode: 缺少参数。');
   }
+
   // 读取相关文件
   const stationNames = fs.readFileSync(__dirname + '/lib/station_name.js').toString();
 
@@ -116,7 +122,6 @@ function getTrainNo(date, from, to, trainCode) {
 
     let count = 0;
 
-    // const url = `https://kyfw.12306.cn/otn/leftTicket/queryZ?leftTicketDTO.train_date=${date}&leftTicketDTO.from_station=${from}&leftTicketDTO.to_station=${to}&purpose_codes=ADULT`;
     const options = {
       host: 'kyfw.12306.cn',
       path: `/otn/leftTicket/queryO?leftTicketDTO.train_date=${date}&leftTicketDTO.from_station=${from}&leftTicketDTO.to_station=${to}&purpose_codes=ADULT`,
@@ -124,6 +129,8 @@ function getTrainNo(date, from, to, trainCode) {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36'
       },
     };
+
+    // console.log(options.host + options.path);
 
     (function get() {
       count++;
@@ -147,9 +154,11 @@ function getTrainNo(date, from, to, trainCode) {
             console.log('FAIL:', statusCode);
           })
         } else {
+
           res.on('data', chunk => {
-            html += chunk;
+            html = `${chunk}`;
           });
+
           res.on('end', () => {
 
             const pattern = `\\|(.{12})\\|${trainCode}\\|`;
@@ -162,7 +171,7 @@ function getTrainNo(date, from, to, trainCode) {
 
             console.log('SUCCESS');
 
-            result ? resolve(result[1]) : reject('getTrainNo: 未找到 "' + trainCode + '" 对应的 trainNo');
+            result ? resolve(result[1]) : reject(`getTrainNo: 未找到 ${trainCode} 对应的 trainNo`);
           })
         }
       }).on('error', err => {
@@ -180,7 +189,6 @@ function getResult(trainDate, fromStationTelecode, toStationTelecode, trainNo) {
 
     let count = 0;
 
-    // url: `https://kyfw.12306.cn/otn/czxx/queryByTrainNo?train_no=${trainNo}&from_station_telecode=${fromStationTelecode}&to_station_telecode=${toStationTelecode}&depart_date=${trainDate}`,
     const options = {
       host: 'kyfw.12306.cn',
       path: `/otn/czxx/queryByTrainNo?train_no=${trainNo}&from_station_telecode=${fromStationTelecode}&to_station_telecode=${toStationTelecode}&depart_date=${trainDate}`,
@@ -229,7 +237,7 @@ function getResult(trainDate, fromStationTelecode, toStationTelecode, trainNo) {
 
 
 
-function execResult(array, fromStationName, toStationName, trainDate) {
+function execResult(array, fromStationNameFromSms, toStationNameFromSms, trainDateFromSms) {
   let day = 0;
   let startTime;
   let arriveTime;
@@ -238,14 +246,14 @@ function execResult(array, fromStationName, toStationName, trainDate) {
   array.forEach(item => {
     const { station_name, start_time, arrive_time, isEnabled } = item;
 
-    if (station_name === fromStationName) {
+    if (station_name === fromStationNameFromSms) {
       // 行程开始时间
       startTime = start_time;
 
       // 记录第一站发车时间
       lastStartTime = start_time;
     } else if (isEnabled) {
-      if (station_name === toStationName) {
+      if (station_name === toStationNameFromSms) {
         // 如果车站为下车站使用 arrive_time 判断 day 是否增加
         if (arrive_time < lastStartTime) {
           day++;
@@ -260,7 +268,7 @@ function execResult(array, fromStationName, toStationName, trainDate) {
     }
   });
 
-  const startDateStamp = new Date(trainDate).getTime();
+  const startDateStamp = new Date(trainDateFromSms).getTime();
   const arriveDateStamp = startDateStamp + 24 * 3600 * 1000 * day;
 
   const startDate = moment(startDateStamp).format('YYYY-MM-DD');

@@ -26,7 +26,7 @@ module.exports = {
       host: '118.25.91.225',
       ref: 'origin/master',
       repo: 'https://github.com/wangjianio/api.wangjian.io.git',
-      path: '/etc/node/test',
+      path: '/etc/node/api.wangjian.io',
       // 'pre-setup': '',
       // "post-setup": '',
       // 'pre-deploy': '',

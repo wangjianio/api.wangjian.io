@@ -3,7 +3,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const sendMail = require('../mail/send');
 
-module.exports = function () {
+module.exports = function (request, response) {
   const localVersion = fs.readFileSync('./modules/kyfw12306/lib/local_version').toString();
 
   const options = {
@@ -31,7 +31,11 @@ module.exports = function () {
 
           // 版本号不同，下载文件
           if (localVersion !== latestVersion) {
-            console.log('Have update')
+            console.log('Have update');
+            response.send(JSON.stringify({
+              statusCode: 1,
+              message: 'Have update',
+            }));
 
             /**
              * 下载文件
@@ -45,7 +49,11 @@ module.exports = function () {
             // 发送邮件提醒
             sendMail('【api.wangjian.io】station_name.js 更新完成', `更新前版本号：${localVersion}\n当前版本号：${latestVersion}`)
           } else {
-            console.log('Updated')
+            console.log('Updated');
+            response.send(JSON.stringify({
+              statusCode: 0,
+              message: 'Updated',
+            }));
           }
         }
       })

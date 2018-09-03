@@ -13,6 +13,10 @@ module.exports = app => {
     kyfw12306.log(req);
   });
 
+  app.get('/12306/update', (req, res) => {
+    kyfw12306.update(req, res);
+  });
+
   app.post('/webhooks/blog/update', (req, res) => {
     webhooks.blog.update(req, res);
   });

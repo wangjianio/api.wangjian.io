@@ -1,5 +1,5 @@
 const { log } = require('../../utils');
-const update = require('./updateStationNameFile');
+const update = require('./update');
 
 module.exports = (req = {}, obj = {}) => {
   const { url, method, query, params, headers, route } = req;

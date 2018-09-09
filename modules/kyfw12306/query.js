@@ -156,7 +156,7 @@ function getTrainNo(date, from, to, trainCode) {
         } else {
 
           res.on('data', chunk => {
-            html = `${chunk}`;
+            html += `${chunk}`;
           });
 
           res.on('end', () => {

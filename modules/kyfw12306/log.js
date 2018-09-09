@@ -5,9 +5,9 @@ module.exports = (req = {}, obj = {}) => {
   const { url, method, query, params, headers, route } = req;
 
   // 周日上午更新
-  if (new Date().getDay() === 0 && new Date().getHours() < 12) {
-    update();
-  }
+  // if (new Date().getDay() === 0 && new Date().getHours() < 12) {
+  //   update();
+  // }
 
 
   const newObj = {

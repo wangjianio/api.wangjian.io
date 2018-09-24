@@ -1,7 +1,8 @@
-const https = require('https');
-const fs = require('fs');
 const moment = require('moment');
 const sendMail = require('../mail/send');
+const getTrainNo = require('./lib/getTrainNo2');
+const queryByTrainNo = require('./lib/queryByTrainNo');
+const getStationTelecode = require('./lib/getStationTelecode');
 
 
 module.exports = (request, response) => {
@@ -53,10 +54,14 @@ module.exports = (request, response) => {
 
 
   // 获取 trainNo
-  getTrainNo2(SMS_INFO.date, fromStationTelecode, toStationTelecode, SMS_INFO.train).then(res => res, err => { throw err })
+  getTrainNo({
+    date: SMS_INFO.date,
+    from: fromStationTelecode,
+    to: toStationTelecode,
+    trainCode: SMS_INFO.train
+  }).then(res => res, err => { throw err })
     .then(trainNo => {
-      getResult(SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo).then(res => {
-        const json = JSON.parse(res);
+      queryByTrainNo({ trainDate: SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo }).then(json => {
         if (json.data.data) {
           const result = execResult(json.data.data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
           console.log(JSON.stringify(result));
@@ -88,204 +93,6 @@ module.exports = (request, response) => {
 /**
  * * * * * * * * * * * 函数们 * * * * * * * * * *
  */
-
-
-function getStationTelecode(stationName) {
-  if (!stationName) {
-    throw new Error('getStationTelecode: 缺少参数。');
-  }
-
-  // 读取相关文件
-  const stationNames = fs.readFileSync(__dirname + '/lib/station_name.js').toString();
-
-  // 正则匹配出相关结果
-  const pattern = `\\|${stationName}\\|([A-Z]{3})\\|`;
-  const result = stationNames.match(pattern);
-
-  return result ? result[1] : console.log('getStationTelecode: 未找到 "' + stationName + '" 对应的 telecode。');
-}
-
-
-/**
- * 获取 trainNo。
- * @param {string} date  发车日期
- * @param {string} from  出发站的 telecode
- * @param {string} to    到达站的 telecode
- * @param {string} trainCode 车次
- */
-function getTrainNo(date, from, to, trainCode) {
-  if (!date || !from || !to || !trainCode) {
-    return console.log('getTrainNo: 缺少参数。');
-  }
-
-  return new Promise((resolve, reject) => {
-
-    let count = 0;
-
-    const options = {
-      host: 'kyfw.12306.cn',
-      path: `/otn/leftTicket/queryA?leftTicketDTO.train_date=${date}&leftTicketDTO.from_station=${from}&leftTicketDTO.to_station=${to}&purpose_codes=ADULT`,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36'
-      },
-    };
-
-    // console.log(options.host + options.path);
-
-    (function get() {
-      count++;
-
-      if (count > 30) {
-        return reject('查询失败，请稍后重试。');
-      }
-
-
-      const req = https.get(options, res => {
-        const { statusCode } = res;
-        let html = '';
-
-        console.log('第', count, '次查询。');
-
-        if (statusCode !== 200) {
-          req.abort();
-          get();
-
-          res.on('end', () => {
-            console.log('FAIL:', statusCode);
-          })
-        } else {
-
-          res.on('data', chunk => {
-            html += `${chunk}`;
-          });
-
-          res.on('end', () => {
-
-            const pattern = `\\|(.{12})\\|${trainCode}\\|`;
-            const result = html.match(pattern);
-
-            if (!html.length) {
-              console.log('FAIL:', statusCode);
-              return get();
-            }
-
-            console.log('SUCCESS');
-
-            result ? resolve(result[1]) : reject(`getTrainNo: 未找到 ${trainCode} 对应的 trainNo`);
-          })
-        }
-      }).on('error', err => {
-        reject(err);
-      })
-    })();
-
-  }); // Promise
-}
-
-function getTrainNo2(date, a, b, trainCode) {
-  if (!date || !trainCode) {
-    return console.log('getTrainNo2: 缺少参数。');
-  }
-
-  return new Promise((resolve, reject) => {
-
-    const options = {
-      host: 'mobile.12306.cn',
-      path: `/weixin/wxcore/queryTrain?ticket_no=${trainCode}&depart_date=${date}`,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36'
-      },
-    };
-
-    const req = https.get(options, res => {
-      const { statusCode } = res;
-      let html = '';
-
-      if (statusCode !== 200) {
-        req.abort();
-      } else {
-        res.on('data', chunk => {
-          html += chunk;
-        });
-
-        res.on('end', () => {
-          const result = JSON.parse(html);
-
-          if (result.httpstatus === 200) {
-            const { data } = result;
-            const map = data.find(item => {
-              return item.ticket_no === trainCode;
-            })
-
-            if (map) {
-              resolve(map.train_code);
-            } else {
-              reject('error: getTrainNo2 not found')
-            }
-          } else {
-            reject('error: getTrainNo2')
-          }
-        })
-      }
-    }).on('error', err => {
-      reject(err);
-    })
-  })
-}
-
-
-
-function getResult(trainDate, fromStationTelecode, toStationTelecode, trainNo) {
-  return new Promise((resolve, reject) => {
-
-    let count = 0;
-
-    const options = {
-      host: 'kyfw.12306.cn',
-      path: `/otn/czxx/queryByTrainNo?train_no=${trainNo}&from_station_telecode=${fromStationTelecode}&to_station_telecode=${toStationTelecode}&depart_date=${trainDate}`,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36'
-      }
-    };
-
-    (function get() {
-      count++;
-
-      if (count > 30) {
-        return reject('查询失败，请稍后重试。');
-      }
-
-
-      const req = https.get(options, res => {
-        const { statusCode } = res;
-        let html = '';
-
-        console.log('第', count, '次查询。');
-
-        if (statusCode !== 200) {
-          req.abort();
-          get();
-
-          res.on('end', () => {
-            console.log('FAIL:', statusCode);
-          })
-        } else {
-          res.on('data', chunk => {
-            html += chunk;
-          });
-          res.on('end', () => {
-            console.log('SUCCESS');
-            resolve(html);
-          })
-        }
-      }).on('error', err => {
-        reject(err);
-      })
-    })();
-
-  }); // Promise
-}
-
 
 
 function execResult(array, fromStationNameFromSms, toStationNameFromSms, trainDateFromSms) {

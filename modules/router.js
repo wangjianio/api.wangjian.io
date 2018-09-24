@@ -13,6 +13,11 @@ module.exports = app => {
     kyfw12306.log(req);
   });
 
+  app.get('/12306/list', (req, res) => {
+    kyfw12306.list(req, res);
+    kyfw12306.log(req);
+  });
+
   app.get('/12306/update', (req, res) => {
     kyfw12306.update(req, res);
   });

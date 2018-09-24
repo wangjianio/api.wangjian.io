@@ -53,35 +53,35 @@ module.exports = (request, response) => {
 
 
   // 获取 trainNo
-  getTrainNo(SMS_INFO.date, fromStationTelecode, toStationTelecode, SMS_INFO.train).then(res => res, err => { throw err })
+  getTrainNo2(SMS_INFO.date, fromStationTelecode, toStationTelecode, SMS_INFO.train).then(res => res, err => { throw err })
     .then(trainNo => {
       getResult(SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo).then(res => {
-      const json = JSON.parse(res);
-      if (json.data.data) {
+        const json = JSON.parse(res);
+        if (json.data.data) {
           const result = execResult(json.data.data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
           console.log(JSON.stringify(result));
-        response.send(JSON.stringify(result));
-      } else {
-        console.log('数据有误');
+          response.send(JSON.stringify(result));
+        } else {
+          console.log('数据有误');
+          response.send(JSON.stringify({
+            statusCode: 400,
+            message: '12306 返回数据有误，请稍后重试',
+          }));
+        }
+      }, err => {
+        console.log(err);
         response.send(JSON.stringify({
-          statusCode: 400,
-          message: '12306 返回数据有误，请稍后重试',
+          statusCode: 5000,
+          message: err,
         }));
-      }
+      });
     }, err => {
       console.log(err);
       response.send(JSON.stringify({
-          statusCode: 5000,
+        statusCode: 5001,
         message: err,
       }));
     });
-  }, err => {
-    console.log(err);
-    response.send(JSON.stringify({
-        statusCode: 5001,
-      message: err,
-    }));
-  });
 }
 
 
@@ -180,6 +180,57 @@ function getTrainNo(date, from, to, trainCode) {
     })();
 
   }); // Promise
+}
+
+function getTrainNo2(date, a, b, trainCode) {
+  if (!date || !trainCode) {
+    return console.log('getTrainNo2: 缺少参数。');
+  }
+
+  return new Promise((resolve, reject) => {
+
+    const options = {
+      host: 'mobile.12306.cn',
+      path: `/weixin/wxcore/queryTrain?ticket_no=${trainCode}&depart_date=${date}`,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36'
+      },
+    };
+
+    const req = https.get(options, res => {
+      const { statusCode } = res;
+      let html = '';
+
+      if (statusCode !== 200) {
+        req.abort();
+      } else {
+        res.on('data', chunk => {
+          html += chunk;
+        });
+
+        res.on('end', () => {
+          const result = JSON.parse(html);
+
+          if (result.httpstatus === 200) {
+            const { data } = result;
+            const map = data.find(item => {
+              return item.ticket_no === trainCode;
+            })
+
+            if (map) {
+              resolve(map.train_code);
+            } else {
+              reject('error: getTrainNo2 not found')
+            }
+          } else {
+            reject('error: getTrainNo2')
+          }
+        })
+      }
+    }).on('error', err => {
+      reject(err);
+    })
+  })
 }
 
 

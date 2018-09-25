@@ -11,7 +11,23 @@ module.exports = (request, response) => {
   const { query } = request;
   console.log(JSON.stringify(query));
 
-  const { train_code, from_station_name, train_date } = query;
+  function getDate(date) {
+    if (/\d+月\d+日/.test(date)) {
+      const m = moment(date, 'M月D日');
+      if (moment().month() - m.month() > 6) {
+        return m.format(`${moment().year() + 1}-MM-DD`);
+      } else {
+        return m.format('YYYY-MM-DD');
+      }
+    }
+    return date;
+  }
+
+  const { train_code, from_station_name, train_date } = {
+    train_code: query.train_code,
+    from_station_name: query.from_station_name.replace('站', ''),
+    train_date: getDate(query.train_date),
+  };
 
   const fromStationTelecode = getStationTelecode(from_station_name);
 

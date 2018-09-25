@@ -1,8 +1,8 @@
 module.exports = (req, res) => {
   const info = {
-    latest_version: "2.6",
-    url: "https://www.icloud.com/shortcuts/a91b6cb2f5d5482c9776dbeb41ab12dc",
-    update: "2018-09-19"
+    latest_version: "3.0",
+    url: "https://www.icloud.com/shortcuts/b768dfdbe9a9433c8ec3ac4ea590bace",
+    update: "2018-09-26"
   }
 
   res.send(JSON.stringify(info));

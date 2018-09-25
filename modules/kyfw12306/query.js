@@ -9,13 +9,25 @@ module.exports = (request, response) => {
 
   const { query } = request;
 
+  function getDate(date) {
+    if (/\d+月\d+日/.test(date)) {
+      const m = moment(date, 'M月D日');
+      if (moment().month() - m.month() > 6) {
+        return m.format(`${moment().year() + 1}-MM-DD`);
+      } else {
+        return m.format('YYYY-MM-DD');
+      }
+    }
+    return date;
+  }
+
   console.log(JSON.stringify(query));
 
   const SMS_INFO = {
     train: query.train_code,
-    from: query.from_station_name,
-    to: query.to_station_name,
-    date: query.train_date,
+    from: query.from_station_name.replace('站', ''),
+    to: query.to_station_name.replace('站', ''),
+    date: getDate(query.train_date),
   }
 
   if (!SMS_INFO.train || !SMS_INFO.from || !SMS_INFO.to || !SMS_INFO.date) {

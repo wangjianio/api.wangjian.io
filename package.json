@@ -19,10 +19,11 @@
   "homepage": "https://github.com/wangjianio/api.wangjian.io#readme",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "chalk": "^2.4.1",
     "express": "^4.16.2",
     "jsonfile": "^4.0.0",
     "moment": "^2.20.1",
-    "mysql": "^2.15.0",
+    "mysql": "^2.16.0",
     "nodemailer": "^4.6.7"
   },
   "nodemonConfig": {

@@ -1,6 +1,7 @@
 const kyfw12306 = require('./kyfw12306');
 const webhooks = require('./webhooks');
 const admin = require('./admin');
+const statistics = require('./statistics');
 
 module.exports = app => {
   app.get('/12306', (req, res) => {
@@ -33,5 +34,9 @@ module.exports = app => {
 
   app.get('/admin/cat', (req, res) => {
     admin.cat(req, res);
+  });
+
+  app.get('/statistics/kyfw12306', (req, res) => {
+    statistics.kyfw12306(req, res);
   });
 }

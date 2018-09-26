@@ -1,13 +1,13 @@
 const fs = require('fs');
+const moment = require('moment');
 
 module.exports = (path, obj) => {
-  const localeTimestamp = new Date().getTime() + 1000 * 3600 * 8;
-  const ISOString = new Date(localeTimestamp).toISOString();
-  const year = new Date(localeTimestamp).getFullYear();
-  const month = new Date(localeTimestamp).getMonth() + 1;
+
+  const year = moment().year();
+  const month = moment().month() + 1;
 
   const newObj = {
-    datetime: ISOString,
+    datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
     ...obj,
   }
 

@@ -25,8 +25,8 @@ module.exports = (request, response) => {
 
   const SMS_INFO = {
     train: query.train_code,
-    from: query.from_station_name.replace('站', ''),
-    to: query.to_station_name.replace('站', ''),
+    from: query.from_station_name.replace('站', '').replace('world', ''),
+    to: query.to_station_name.replace('站', '').replace('world', ''),
     date: getDate(query.train_date),
   }
 

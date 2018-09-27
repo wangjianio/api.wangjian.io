@@ -25,7 +25,7 @@ module.exports = (request, response) => {
 
   const { train_code, from_station_name, train_date } = {
     train_code: query.train_code,
-    from_station_name: query.from_station_name.replace('站', ''),
+    from_station_name: query.from_station_name.replace('站', '').replace('world', ''),
     train_date: getDate(query.train_date),
   };
 

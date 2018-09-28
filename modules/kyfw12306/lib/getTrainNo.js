@@ -7,7 +7,7 @@ const https = require('https');
  * @param {string} to    到达站的 telecode
  * @param {string} trainCode 车次
  */
-module.exports = function getTrainNo({ date, from, to, trainCode }) {
+module.exports = function getTrainNo({ date, from = 'BBB', to = 'BBB', trainCode }) {
   if (!date || !from || !to || !trainCode) {
     return console.log('getTrainNo: 缺少参数。');
   }

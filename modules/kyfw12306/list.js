@@ -42,7 +42,7 @@ module.exports = (request, response) => {
 
   getTrainNo({
     trainCode: train_code,
-    from: from_station_name,
+    from: fromStationTelecode,
     date: train_date,
   }).then(trainNo => {
     queryByTrainNo({

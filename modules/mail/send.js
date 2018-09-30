@@ -1,7 +1,13 @@
 const config = require('../../../config.json');
 const nodemailer = require('nodemailer');
 
+const fs = require('fs');
+
+
 module.exports = function (subject, text) {
+  fs.writeFile('./mail', JSON.stringify({ subject, text }) + '\n', { flag: 'a' }, () => { });
+  return;
+
   const transporter = nodemailer.createTransport({
     host: 'smtp.exmail.qq.com',
     port: 587,

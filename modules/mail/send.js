@@ -1,13 +1,7 @@
 const config = require('../../../config.json');
 const nodemailer = require('nodemailer');
 
-const fs = require('fs');
-
-
 module.exports = function (subject, text) {
-  fs.writeFile('./mail', JSON.stringify({ subject, text }) + '\n', { flag: 'a' }, () => { });
-  return;
-
   const transporter = nodemailer.createTransport({
     host: 'smtp.exmail.qq.com',
     port: 587,
@@ -20,8 +14,8 @@ module.exports = function (subject, text) {
 
   // setup email data with unicode symbols
   const mailOptions = {
-    from: `"王建" <${config.mailUser}>`,
-    to: '337034664@qq.com',
+    from: `"${config.mailName}" <${config.mailUser}>`,
+    to: config.mailReceiver,
     // cc: '',
     // bcc: 'no-reply@wangjian.io',
     subject,

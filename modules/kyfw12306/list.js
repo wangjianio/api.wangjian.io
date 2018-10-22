@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 const moment = require('moment');
 const sendMail = require('../mail/send');
-const getTrainNo = require('./lib/getTrainNo2');
+const getTrainNo = require('./lib/getTrainNo');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 

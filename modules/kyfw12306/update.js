@@ -41,7 +41,7 @@ module.exports = function (request, response) {
              * 下载文件
              * TODO: 下载失败不执行下一步
              */
-            cp.execSync(`cd modules/kyfw12306/lib; wget -a wget.log -b -O station_name.js https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=${latestVersion}`, { encoding: 'utf-8' });
+            cp.execSync(`cd modules/kyfw12306/lib; wget --no-check-certificate -a wget.log -b -O station_name.js https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=${latestVersion}`, { encoding: 'utf-8' });
 
             // 修改本地存储版本号
             fs.writeFile('./modules/kyfw12306/lib/local_version', latestVersion, () => { });

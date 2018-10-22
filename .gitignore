@@ -58,3 +58,4 @@ typings/
 .env
 
 .DS_Store
+modules/kyfw12306/lib/train_list.json

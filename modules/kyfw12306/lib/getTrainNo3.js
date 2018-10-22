@@ -15,7 +15,8 @@ module.exports = function getTrainNo({ date, trainCode } = {}) {
 
       resolve(trainNo);
     } catch (error) {
-      reject(error);
+      reject('error: getTrainNo');
+      console.log(error);
     }
   });
 }

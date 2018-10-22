@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 const moment = require('moment');
 const sendMail = require('../mail/send');
-const getTrainNo = require('./lib/getTrainNo');
+const getTrainNo = require('./lib/getTrainNo3');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 
@@ -45,6 +45,8 @@ module.exports = (request, response) => {
     from: fromStationTelecode,
     date: train_date,
   }).then(trainNo => {
+
+    console.log(trainNo)
     queryByTrainNo({
       trainDate: train_date,
       fromStationTelecode,

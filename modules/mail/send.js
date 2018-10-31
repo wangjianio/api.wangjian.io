@@ -3,7 +3,6 @@ const nodemailer = require('nodemailer');
 
 module.exports = function (subject, text) {
 
-  return;
   const transporter = nodemailer.createTransport({
     host: 'smtp.exmail.qq.com',
     port: 587,

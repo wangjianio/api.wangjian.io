@@ -1,6 +1,6 @@
 const moment = require('moment');
 const sendMail = require('../mail/send');
-const getTrainNo = require('./lib/getTrainNo3');
+const getTrainNo = require('./lib/getTrainNo');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 
@@ -12,18 +12,23 @@ module.exports = (request, response) => {
 
   if (!train_code || !from_station_name || !train_date) {
     return response.send(JSON.stringify({
-      statusCode: 4003,
+      statusCode: 0,
       message: 'Missing params',
+      data: [],
     }));
   }
 
   const trainCode = train_code;
-  const fromStationName = from_station_name.replace('站', '').replace('world', '');
   const trainDate = getDate(train_date);
+  const fromStationName = from_station_name.replace('站', '').replace('world', '');
 
-  getStationTelecode(fromStationName).then(fromStationTelecode => {
-    return getTrainNo({ trainCode, trainDate, fromStationTelecode })
-  }).then(({ trainNo, fromStationTelecode }) => {
+  let fromStationTelecode, trainNo;
+
+  getStationTelecode(fromStationName).then(_fromStationTelecode => {
+    fromStationTelecode = _fromStationTelecode;
+    return getTrainNo({ trainCode, trainDate })
+  }).then(_trainNo => {
+    trainNo = _trainNo;
     return queryByTrainNo({ trainDate, trainNo, fromStationTelecode })
   }).then(json => {
     const { data } = json.data;
@@ -43,11 +48,11 @@ module.exports = (request, response) => {
     );
     console.log(err)
     response.send(JSON.stringify({
-      statusCode: 4002,
+      statusCode: 0,
       message: err.message,
+      data: [],
     }));
   });
-
 }
 
 function getDate(date) {

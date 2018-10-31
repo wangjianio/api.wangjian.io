@@ -53,7 +53,7 @@ module.exports = function queryByTrainNo({ trainDate, trainNo, fromStationTeleco
           })
         }
       }).on('error', err => {
-        console.log(err);
+        console.log('ERROR');
         req.abort();
         get();
       })

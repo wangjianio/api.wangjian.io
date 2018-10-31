@@ -1,8 +1,6 @@
 const trainList = require('./train_list.json');
-const getTrainNo1 = require('./getTrainNo1');
-const getTrainNo2 = require('./getTrainNo2');
 
-module.exports = function getTrainNo({ trainCode, trainDate, fromStationTelecode } = {}) {
+module.exports = function getTrainNo3({ trainCode, trainDate } = {}) {
   return new Promise((resolve, reject) => {
     try {
       let key = 'O';
@@ -16,12 +14,7 @@ module.exports = function getTrainNo({ trainCode, trainDate, fromStationTelecode
       });
 
       if (found) {
-        resolve({
-          trainNo: found.train_no,
-          trainCode,
-          trainDate,
-          fromStationTelecode,
-        });
+        resolve(found.train_no);
       } else {
         reject({
           type: 'trainNo',

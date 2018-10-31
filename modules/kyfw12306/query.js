@@ -1,6 +1,6 @@
 const moment = require('moment');
 const sendMail = require('../mail/send');
-const getTrainNo = require('./lib/getTrainNo3');
+const getTrainNo = require('./lib/getTrainNo');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 
@@ -46,59 +46,69 @@ module.exports = (request, response) => {
     }));
   }
 
+  let fromStationTelecode, toStationTelecode;
 
-  const fromStationTelecode = getStationTelecode(SMS_INFO.from);
-  const toStationTelecode = getStationTelecode(SMS_INFO.to);
+  getStationTelecode(SMS_INFO.from).then(telecode => {
+    fromStationTelecode = telecode;
+  });
+  getStationTelecode(SMS_INFO.to).then(telecode => {
+    toStationTelecode = telecode;
+  });
 
-  if (!fromStationTelecode || !toStationTelecode) {
-    const missed = [];
+  setTimeout(() => {
+    if (!fromStationTelecode || !toStationTelecode) {
+      const missed = [];
 
-    !fromStationTelecode && missed.push(SMS_INFO.from);
-    !toStationTelecode && missed.push(SMS_INFO.to);
+      !fromStationTelecode && missed.push(SMS_INFO.from);
+      !toStationTelecode && missed.push(SMS_INFO.to);
 
-    sendMail('【api.wangjian.io/12306】telecode 获取失败', `${missed.join(', ')}\n${decodeURI(request.url)}\n${request.headers['user-agent']}`);
+      sendMail('【api.wangjian.io/12306】telecode 获取失败', `${missed.join(', ')}\n${decodeURI(request.url)}\n${request.headers['user-agent']}`);
 
-    return response.send(JSON.stringify({
-      statusCode: 4002,
-      message: `Wrong station_name: ${missed.join(', ')}`,
-    }));
-  }
+      return response.send(JSON.stringify({
+        statusCode: 4002,
+        message: `Wrong station_name: ${missed.join(', ')}`,
+      }));
+    }
 
 
-  // 获取 trainNo
-  getTrainNo({
-    date: SMS_INFO.date,
-    from: fromStationTelecode,
-    to: toStationTelecode,
-    trainCode: SMS_INFO.train
-  }).then(res => res, err => { throw err })
-    .then(trainNo => {
-      queryByTrainNo({ trainDate: SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo }).then(json => {
-        if (json.data.data) {
-          const result = execResult(json.data.data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
-          console.log(JSON.stringify(result));
-          response.send(JSON.stringify(result));
-        } else {
-          console.log('数据有误');
+    // 获取 trainNo
+    getTrainNo({
+      trainCode: SMS_INFO.train,
+      trainDate: SMS_INFO.date,
+      date: SMS_INFO.date,
+      from: fromStationTelecode,
+      to: toStationTelecode,
+      trainCode: SMS_INFO.train
+    }).then(res => res, err => { throw err })
+      .then(trainNo => {
+        queryByTrainNo({ trainDate: SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo }).then(json => {
+          if (json.data.data) {
+            const result = execResult(json.data.data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
+            console.log(JSON.stringify(result));
+            response.send(JSON.stringify(result));
+          } else {
+            console.log('数据有误');
+            response.send(JSON.stringify({
+              statusCode: 400,
+              message: '12306 返回数据有误，请稍后重试',
+            }));
+          }
+        }, err => {
+          console.log(err);
           response.send(JSON.stringify({
-            statusCode: 400,
-            message: '12306 返回数据有误，请稍后重试',
+            statusCode: 5000,
+            message: err,
           }));
-        }
+        });
       }, err => {
         console.log(err);
         response.send(JSON.stringify({
-          statusCode: 5000,
+          statusCode: 5001,
           message: err,
         }));
       });
-    }, err => {
-      console.log(err);
-      response.send(JSON.stringify({
-        statusCode: 5001,
-        message: err,
-      }));
-    });
+  }, 0);
+
 }
 
 

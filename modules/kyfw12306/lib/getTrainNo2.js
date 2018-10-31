@@ -1,16 +1,11 @@
 const https = require('https');
 
-
-module.exports = function getTrainNo({ date, trainCode }) {
-  if (!date || !trainCode) {
-    return console.log('getTrainNo2: 缺少参数。');
-  }
-
+module.exports = function getTrainNo2({ trainCode, trainDate }) {
   return new Promise((resolve, reject) => {
 
     const options = {
       host: 'mobile.12306.cn',
-      path: `/weixin/wxcore/queryTrain?ticket_no=${trainCode}&depart_date=${date}`,
+      path: `/weixin/wxcore/queryTrain?ticket_no=${trainCode}&depart_date=${trainDate}`,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36'
       },

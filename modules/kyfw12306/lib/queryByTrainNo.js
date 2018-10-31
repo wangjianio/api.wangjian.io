@@ -1,6 +1,6 @@
 const https = require('https');
 
-module.exports = function queryByTrainNo({ trainNo, fromStationTelecode = 'BBB', toStationTelecode = 'BBB', trainDate }) {
+module.exports = function queryByTrainNo({ trainDate, trainNo, fromStationTelecode = 'BBB', toStationTelecode = 'BBB' }) {
 
   return new Promise((resolve, reject) => {
 
@@ -18,7 +18,11 @@ module.exports = function queryByTrainNo({ trainNo, fromStationTelecode = 'BBB',
       count++;
 
       if (count > 30) {
-        return reject('查询失败，请稍后重试。');
+        return reject({
+          type: 'query',
+          reason: `train_date: ${trainDate}, train_no: ${trainNo}, from_station_telecode: ${fromStationTelecode}, to_station_telecode: ${toStationTelecode}. query fail`,
+          message: 'Server buzy, please retry later.'
+        });
       }
 
       const req = https.get(options, res => {
@@ -39,13 +43,20 @@ module.exports = function queryByTrainNo({ trainNo, fromStationTelecode = 'BBB',
 
           res.on('end', () => {
             console.log('SUCCESS');
-            resolve(JSON.parse(html));
+            try {
+              const result = JSON.parse(html);
+              resolve(result);
+            } catch (error) {
+              req.abort();
+              get();
+            }
           })
         }
       }).on('error', err => {
-        reject(err);
+        console.log(err);
+        req.abort();
+        get();
       })
     })();
-
   })
 }

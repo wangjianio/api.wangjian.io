@@ -7,59 +7,57 @@ const getStationTelecode = require('./lib/getStationTelecode');
 
 module.exports = (request, response) => {
   const { query } = request;
+  const { train_code, from_station_name, train_date } = query;
   console.log(JSON.stringify(query));
 
-  function getDate(date) {
-    if (/\d+月\d+日/.test(date)) {
-      const m = moment(date, 'M月D日');
-      if (moment().month() - m.month() > 6) {
-        return m.format(`${moment().year() + 1}-MM-DD`);
-      } else {
-        return m.format('YYYY-MM-DD');
-      }
-    }
-    return date;
-  }
-
-  const { train_code, from_station_name, train_date } = {
-    train_code: query.train_code,
-    from_station_name: query.from_station_name.replace('站', '').replace('world', ''),
-    train_date: getDate(query.train_date),
-  };
-
-  const fromStationTelecode = getStationTelecode(from_station_name);
-
-  if (!fromStationTelecode) {
-    sendMail('【api.wangjian.io/12306】telecode 获取失败', `${from_station_name}\n${decodeURI(request.url)}\n${request.headers['user-agent']}`);
-
+  if (!train_code || !from_station_name || !train_date) {
     return response.send(JSON.stringify({
-      statusCode: 4002,
-      message: `Wrong station_name: ${from_station_name}`,
+      statusCode: 4003,
+      message: 'Missing params',
     }));
   }
 
-  getTrainNo({
-    trainCode: train_code,
-    from: fromStationTelecode,
-    date: train_date,
-  }).then(trainNo => {
-    queryByTrainNo({
-      trainDate: train_date,
-      fromStationTelecode,
-      trainNo,
-    }).then(json => {
-      const { data } = json.data;
+  const trainCode = train_code;
+  const fromStationName = from_station_name.replace('站', '').replace('world', '');
+  const trainDate = getDate(train_date);
 
-      const startIndex = data.findIndex(item => item.station_name === from_station_name);
+  getStationTelecode(fromStationName).then(fromStationTelecode => {
+    return getTrainNo({ trainCode, trainDate, fromStationTelecode })
+  }).then(({ trainNo, fromStationTelecode }) => {
+    return queryByTrainNo({ trainDate, trainNo, fromStationTelecode })
+  }).then(json => {
+    const { data } = json.data;
 
-      const list = data.filter((item, index) => index > startIndex).map(item => item.station_name);
+    const startIndex = data.findIndex(item => item.station_name === fromStationName);
+    const list = data.filter((item, index) => index > startIndex).map(item => item.station_name);
 
-      response.send(JSON.stringify({
-        statusCode: 0,
-        message: 'success',
-        data: list,
-      }));
-    })
+    response.send(JSON.stringify({
+      statusCode: 0,
+      message: 'success',
+      data: list,
+    }));
+  }).catch(err => {
+    sendMail(
+      `【api.wangjian.io/12306】${err.type} 获取失败`,
+      `${decodeURI(request.url)}\n${request.headers['user-agent']}\n${err.reason}`
+    );
+    console.log(err)
+    response.send(JSON.stringify({
+      statusCode: 4002,
+      message: err.message,
+    }));
+  });
 
-  }, err => { throw err });
+}
+
+function getDate(date) {
+  if (/\d+月\d+日/.test(date)) {
+    const m = moment(date, 'M月D日');
+    if (moment().month() - m.month() > 6) {
+      return m.format(`${moment().year() + 1}-MM-DD`);
+    } else {
+      return m.format('YYYY-MM-DD');
+    }
+  }
+  return date;
 }

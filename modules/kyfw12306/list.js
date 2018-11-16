@@ -42,11 +42,11 @@ module.exports = (request, response) => {
       data: list,
     }));
   }).catch(err => {
+    console.log(err)
     sendMail(
       `【api.wangjian.io/12306】${err.type} 获取失败`,
       `${decodeURI(request.url)}\n${request.headers['user-agent']}\n${err.reason}`
     );
-    console.log(err)
     response.send(JSON.stringify({
       statusCode: 0,
       message: err.message,

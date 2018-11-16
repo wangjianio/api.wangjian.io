@@ -24,7 +24,11 @@ module.exports = function getTrainNo({ trainCode, trainDate }) {
         if (trainNo2 === undefined) {
         } else if (trainNo2 === null) {
           clearInterval(timer);
-          return reject();
+          return reject({
+            type: 'trainNo',
+            reason: `train_code: ${trainCode}, train_date: ${trainDate}. found nothing`,
+            message: 'Can not find train_no.'
+          });
         } else {
           trainNo = trainNo2;
           resolve(trainNo);

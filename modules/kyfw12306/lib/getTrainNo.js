@@ -27,7 +27,7 @@ module.exports = function getTrainNo({ trainCode, trainDate }) {
           return reject({
             type: 'trainNo',
             reason: `train_code: ${trainCode}, train_date: ${trainDate}. found nothing`,
-            message: 'Can not find train_no.'
+            message: 'Can not find train_no. (getTrainNo)'
           });
         } else {
           trainNo = trainNo2;

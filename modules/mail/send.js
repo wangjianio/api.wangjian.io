@@ -13,21 +13,17 @@ module.exports = function (subject, text) {
     }
   });
 
-  // setup email data with unicode symbols
   const mailOptions = {
     from: `"${config.mailName}" <${config.mailUser}>`,
     to: config.mailReceiver,
-    // cc: '',
-    // bcc: 'no-reply@wangjian.io',
     subject,
     text,
-    // html,
   };
 
-  // send mail with defined transport object
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       return console.log(error);
     }
   });
+  
 }

@@ -1,10 +1,14 @@
 const https = require('https');
-const fs = require('fs');
 const cp = require('child_process');
 const sendMail = require('../mail/send');
+const mongo = require('../../utils/mongo');
 
-module.exports = function (request, response) {
-  const localVersion = fs.readFileSync('./modules/kyfw12306/lib/local_version').toString();
+module.exports = async function (request, response) {
+
+  const collection = mongo.db.db('kyfw12306').collection('utils');
+
+  // 获取数据库记录的版本号
+  const { localVersion } = await collection.findOne({});
 
   const options = {
     hostname: 'kyfw.12306.cn',
@@ -20,7 +24,6 @@ module.exports = function (request, response) {
       res.on('data', chunk => {
         html += `${chunk}`;
       });
-
 
       res.on('end', () => {
         // 匹配版本号
@@ -43,11 +46,16 @@ module.exports = function (request, response) {
              */
             cp.execSync(`cd modules/kyfw12306/lib; wget --no-check-certificate -a wget.log -b -O station_name.js https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=${latestVersion}`, { encoding: 'utf-8' });
 
-            // 修改本地存储版本号
-            fs.writeFile('./modules/kyfw12306/lib/local_version', latestVersion, () => { });
+            // 修改数据库记录版本号
+            collection.findOneAndUpdate(
+              { localVersion },
+              { $set: { localVersion: latestVersion } },
+              { upsert: true }
+            );
 
             // 发送邮件提醒
-            sendMail('【api.wangjian.io】station_name.js 更新完成', `更新前版本号：${localVersion}\n当前版本号：${latestVersion}`)
+            sendMail('【api.wangjian.io】station_name.js 更新完成', `更新前版本号：${localVersion}\n当前版本号：${latestVersion}`);
+
           } else {
             console.log('Updated');
             response.send(JSON.stringify({

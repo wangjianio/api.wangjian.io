@@ -4,11 +4,13 @@ const sendMail = require('../mail/send');
 const mongo = require('../../utils/mongo');
 
 module.exports = async function (request, response) {
+  console.log(process.env.ENV_NAME)
+  console.log(process.env.NODE_ENV)
 
-  const collection = mongo.db.db('kyfw12306').collection('utils');
+  const collection = mongo.db.db(`kyfw12306_${process.env.NODE_ENV}`).collection('utils');
 
   // 获取数据库记录的版本号
-  const { localVersion } = await collection.findOne({});
+  const { localVersion } = await collection.findOne({}) || {};
 
   const options = {
     hostname: 'kyfw.12306.cn',

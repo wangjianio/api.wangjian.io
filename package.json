@@ -31,6 +31,9 @@
   "nodemonConfig": {
     "ignore": [
       "logs/"
-    ]
+    ],
+    "env": {
+      "NODE_ENV": "development"
+    }
   }
 }

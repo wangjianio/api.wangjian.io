@@ -12,7 +12,7 @@ module.exports = (req = {}, obj = {}) => {
     method,
     query,
     params,
-    userAgent: headers['user-agent'],
+    userAgent: decodeURIComponent(headers['user-agent']),
   }
 
   const collection = mongo.db.db(`kyfw12306_${process.env.NODE_ENV}`).collection('request_log');

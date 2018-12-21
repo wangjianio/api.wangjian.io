@@ -3,13 +3,20 @@ const sendMail = require('../mail/send');
 const getTrainNo = require('./lib/getTrainNo');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
-
+const mongo = require('../../utils/mongo');
 
 module.exports = async function list(request, response) {
   try {
+    const collection = mongo.db.db(`kyfw12306_${process.env.NODE_ENV}`).collection('list_log');
+
     const { query } = request;
     const { train_code, from_station_name, train_date } = query;
     console.log(JSON.stringify(query));
+
+    collection.insertOne({
+      ...query,
+      datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
+    });
 
     if (!train_code || !from_station_name || !train_date) {
       return response.send(JSON.stringify({

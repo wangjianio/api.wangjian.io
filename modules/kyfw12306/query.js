@@ -3,59 +3,47 @@ const sendMail = require('../mail/send');
 const getTrainNo = require('./lib/getTrainNo');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
+const mongo = require('../../utils/mongo');
 
+module.exports = async (request, response) => {
+  try {
+    const collection = mongo.db.db(`kyfw12306_${process.env.NODE_ENV}`).collection('query_log');
 
-module.exports = (request, response) => {
+    const { query } = request;
 
-  const { query } = request;
+    console.log(JSON.stringify(query));
+    
+    collection.insertOne({
+      ...query,
+      datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
+    });
 
-  function getDate(date) {
-    if (/\d+月\d+日/.test(date)) {
-      const m = moment(date, 'M月D日');
-      if (moment().month() - m.month() > 6) {
-        return m.format(`${moment().year() + 1}-MM-DD`);
-      } else {
-        return m.format('YYYY-MM-DD');
-      }
+    const SMS_INFO = {
+      train: query.train_code,
+      from: query.from_station_name.replace('站', '').replace('world', ''),
+      to: query.to_station_name.replace('站', '').replace('world', ''),
+      date: getDate(query.train_date),
     }
-    return date;
-  }
 
-  console.log(JSON.stringify(query));
+    if (!SMS_INFO.train || !SMS_INFO.from || !SMS_INFO.to || !SMS_INFO.date) {
+      const missed = [];
 
-  const SMS_INFO = {
-    train: query.train_code,
-    from: query.from_station_name.replace('站', '').replace('world', ''),
-    to: query.to_station_name.replace('站', '').replace('world', ''),
-    date: getDate(query.train_date),
-  }
+      !SMS_INFO.train && missed.push('train_code');
+      !SMS_INFO.from && missed.push('from_station_name');
+      !SMS_INFO.to && missed.push('to_station_name');
+      !SMS_INFO.date && missed.push('train_date');
 
-  if (!SMS_INFO.train || !SMS_INFO.from || !SMS_INFO.to || !SMS_INFO.date) {
-    const missed = [];
+      sendMail('【api.wangjian.io/12306】错误传参', `${decodeURIComponent(request.url)}\n${request.headers['user-agent']}`);
 
-    !SMS_INFO.train && missed.push('train_code');
-    !SMS_INFO.from && missed.push('from_station_name');
-    !SMS_INFO.to && missed.push('to_station_name');
-    !SMS_INFO.date && missed.push('train_date');
+      return response.send(JSON.stringify({
+        statusCode: 4001,
+        message: `Miss params: ${missed.join(', ')}`,
+      }));
+    }
 
-    sendMail('【api.wangjian.io/12306】错误传参', `${decodeURI(request.url)}\n${request.headers['user-agent']}`);
+    const fromStationTelecode = await getStationTelecode(SMS_INFO.from);
+    const toStationTelecode = await getStationTelecode(SMS_INFO.to);
 
-    return response.send(JSON.stringify({
-      statusCode: 4001,
-      message: `Miss params: ${missed.join(', ')}`,
-    }));
-  }
-
-  let fromStationTelecode, toStationTelecode;
-
-  getStationTelecode(SMS_INFO.from).then(telecode => {
-    fromStationTelecode = telecode;
-  });
-  getStationTelecode(SMS_INFO.to).then(telecode => {
-    toStationTelecode = telecode;
-  });
-
-  setTimeout(() => {
     if (!fromStationTelecode || !toStationTelecode) {
       const missed = [];
 
@@ -70,51 +58,46 @@ module.exports = (request, response) => {
       }));
     }
 
-
-    // 获取 trainNo
-    getTrainNo({
+    const trainNo = await getTrainNo({
       trainCode: SMS_INFO.train,
       trainDate: SMS_INFO.date,
       date: SMS_INFO.date,
       from: fromStationTelecode,
       to: toStationTelecode,
       trainCode: SMS_INFO.train
-    }).then(res => res, err => { throw err })
-      .then(trainNo => {
-        queryByTrainNo({ trainDate: SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo }).then(json => {
-          if (json.data.data) {
-            const result = execResult(json.data.data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
-            console.log(JSON.stringify(result));
-            response.send(JSON.stringify(result));
-          } else {
-            console.log('数据有误');
-            response.send(JSON.stringify({
-              statusCode: 400,
-              message: '12306 返回数据有误，请稍后重试',
-            }));
-          }
-        }, err => {
-          console.log(err);
-          response.send(JSON.stringify({
-            statusCode: 5000,
-            message: err,
-          }));
-        });
-      }, err => {
-        console.log(err);
-        response.send(JSON.stringify({
-          statusCode: 5001,
-          message: err,
-        }));
-      });
-  }, 0);
+    });
 
+    const json = await queryByTrainNo({ trainDate: SMS_INFO.date, fromStationTelecode, toStationTelecode, trainNo });
+    const { data } = json.data;
+    const result = execResult(data, SMS_INFO.from, SMS_INFO.to, SMS_INFO.date);
+
+    console.log(JSON.stringify(result));
+    response.send(JSON.stringify(result));
+  } catch (error) {
+    console.log(error);
+    response.send(JSON.stringify({
+      statusCode: 400,
+      message: 'error',
+    }));
+  }
 }
 
 
 /**
  * * * * * * * * * * * 函数们 * * * * * * * * * *
  */
+
+function getDate(date) {
+  if (/\d+月\d+日/.test(date)) {
+    const m = moment(date, 'M月D日');
+    if (moment().month() - m.month() > 6) {
+      return m.format(`${moment().year() + 1}-MM-DD`);
+    } else {
+      return m.format('YYYY-MM-DD');
+    }
+  }
+  return date;
+}
 
 
 function execResult(array, fromStationNameFromSms, toStationNameFromSms, trainDateFromSms) {

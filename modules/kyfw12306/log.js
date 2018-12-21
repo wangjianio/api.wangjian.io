@@ -1,24 +1,25 @@
 const { log } = require('../../utils');
-const update = require('./update');
+const mongo = require('../../utils/mongo');
+const moment = require('moment');
 
 module.exports = (req = {}, obj = {}) => {
   const { url, method, query, params, headers, route } = req;
 
-  // 周日上午更新
-  // if (new Date().getDay() === 0 && new Date().getHours() < 12) {
-  //   update();
-  // }
-
-
   const newObj = {
     ...obj,
-    url,
+    url: decodeURIComponent(url),
     path: route.path,
     method,
     query,
     params,
     userAgent: headers['user-agent'],
   }
+
+  const collection = mongo.db.db(`kyfw12306_${process.env.NODE_ENV}`).collection('request_log');
+  collection.insertOne({
+    ...newObj,
+    datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
+  });
 
   log('kyfw12306', newObj);
 }

@@ -5,32 +5,29 @@ const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 
 
-module.exports = (request, response) => {
-  const { query } = request;
-  const { train_code, from_station_name, train_date } = query;
-  console.log(JSON.stringify(query));
+module.exports = async function list(request, response) {
+  try {
+    const { query } = request;
+    const { train_code, from_station_name, train_date } = query;
+    console.log(JSON.stringify(query));
 
-  if (!train_code || !from_station_name || !train_date) {
-    return response.send(JSON.stringify({
-      statusCode: 0,
-      message: 'Missing params',
-      data: [],
-    }));
-  }
+    if (!train_code || !from_station_name || !train_date) {
+      return response.send(JSON.stringify({
+        statusCode: 0,
+        message: 'Missing params',
+        data: [],
+      }));
+    }
 
-  const trainCode = train_code;
-  const trainDate = getDate(train_date);
-  const fromStationName = from_station_name.replace('站', '').replace('world', '');
+    const trainCode = train_code;
+    const trainDate = getDate(train_date);
+    const fromStationName = from_station_name.replace('站', '').replace('world', '');
 
-  let fromStationTelecode, trainNo;
 
-  getStationTelecode(fromStationName).then(_fromStationTelecode => {
-    fromStationTelecode = _fromStationTelecode;
-    return getTrainNo({ trainCode, trainDate })
-  }).then(_trainNo => {
-    trainNo = _trainNo;
-    return queryByTrainNo({ trainDate, trainNo, fromStationTelecode })
-  }).then(json => {
+    const fromStationTelecode = await getStationTelecode(fromStationName);
+    const trainNo = await getTrainNo({ trainCode, trainDate });
+    const json = await queryByTrainNo({ trainDate, trainNo, fromStationTelecode });
+
     const { data } = json.data;
 
     const startIndex = data.findIndex(item => item.station_name === fromStationName);
@@ -41,18 +38,19 @@ module.exports = (request, response) => {
       message: 'success',
       data: list,
     }));
-  }).catch(err => {
-    console.log(err)
+
+  } catch (error) {
+    console.log(error);
     sendMail(
-      `【api.wangjian.io/12306】${err.type} 获取失败`,
-      `${decodeURI(request.url)}\n${request.headers['user-agent']}\n${err.reason}`
+      `【api.wangjian.io/12306】${error.type} 获取失败`,
+      `${decodeURIComponent(request.url)}\n${request.headers['user-agent']}\n${error.reason}`
     );
     response.send(JSON.stringify({
       statusCode: 0,
-      message: err.message,
+      message: error.message,
       data: [],
     }));
-  });
+  }
 }
 
 function getDate(date) {

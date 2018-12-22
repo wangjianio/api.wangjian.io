@@ -1,6 +1,6 @@
 const moment = require('moment');
 const sendMail = require('../mail/send');
-const getTrainNo = require('./lib/getTrainNo');
+const getTrainNo = require('./lib/getTrainNo4');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 const mongo = require('../../utils/mongo');

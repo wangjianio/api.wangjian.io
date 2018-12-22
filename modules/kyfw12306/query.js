@@ -1,6 +1,6 @@
 const moment = require('moment');
 const sendMail = require('../mail/send');
-const getTrainNo = require('./lib/getTrainNo');
+const getTrainNo = require('./lib/getTrainNo1');
 const queryByTrainNo = require('./lib/queryByTrainNo');
 const getStationTelecode = require('./lib/getStationTelecode');
 const mongo = require('../../utils/mongo');
@@ -12,7 +12,7 @@ module.exports = async (request, response) => {
     const { query } = request;
 
     console.log(JSON.stringify(query));
-    
+
     collection.insertOne({
       ...query,
       datetime: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -76,7 +76,7 @@ module.exports = async (request, response) => {
   } catch (error) {
     console.log(error);
     response.send(JSON.stringify({
-      statusCode: 400,
+      statusCode: 500,
       message: 'error',
     }));
   }

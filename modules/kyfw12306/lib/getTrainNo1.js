@@ -12,7 +12,7 @@ module.exports = function getTrainNo1({ date, from = 'BBB', to = 'BBB', trainCod
     return console.log('getTrainNo: 缺少参数。');
   }
 
-  return get('leftTicket/queryO');
+  return get('leftTicket/queryX');
 
   function get(c_url) {
     return global.axios({

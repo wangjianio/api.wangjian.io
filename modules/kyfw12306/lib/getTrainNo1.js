@@ -12,9 +12,22 @@ module.exports = function getTrainNo1({ date, from = 'BBB', to = 'BBB', trainCod
     return console.log('getTrainNo: 缺少参数。');
   }
 
+  let count = 0;
+
+
   return get('leftTicket/queryA');
 
   function get(c_url) {
+    count++;
+
+    if (count > 30) {
+      throw {
+        type: 'query',
+        reason: '',
+        message: 'Server buzy, please retry later.'
+      };
+    }
+
     return global.axios({
       url: 'https://kyfw.12306.cn/otn/' + c_url,
       params: {
@@ -35,9 +48,7 @@ module.exports = function getTrainNo1({ date, from = 'BBB', to = 'BBB', trainCod
         }
       }
 
-      throw {
-        message: 'error: getTrainNo1'
-      }
+      return get(c_url);
     }).catch(error => {
       if (error.response && error.response.status === 302) {
         sendMail(

@@ -15,5 +15,9 @@ module.exports = function getTrainNo4({ trainCode, trainDate } = {}) {
     throw {
       message: 'getTrainNo4'
     }
+  }).catch(error => {
+    throw {
+      message: 'getTrainNo4'
+    }
   })
 }

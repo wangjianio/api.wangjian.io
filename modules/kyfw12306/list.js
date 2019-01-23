@@ -48,10 +48,10 @@ module.exports = async function list(request, response) {
 
   } catch (error) {
     console.log(error);
-    sendMail(
-      `【api.wangjian.io/12306】${error.type} 获取失败`,
-      `${decodeURIComponent(request.url)}\n${request.headers['user-agent']}\n${error.reason}`
-    );
+    // sendMail(
+    //   `【api.wangjian.io/12306】${error.type} 获取失败`,
+    //   `${decodeURIComponent(request.url)}\n${request.headers['user-agent']}\n${error.reason}`
+    // );
     response.send(JSON.stringify({
       statusCode: 0,
       message: error.message,

@@ -23,7 +23,7 @@ module.exports = {
     production: {
       key: '~/.ssh/qcloud',
       user: 'root',
-      host: '118.25.91.225',
+      host: 'api.wangjian.io',
       ref: 'origin/master',
       repo: 'https://github.com/wangjianio/api.wangjian.io.git',
       path: '/etc/node/api.wangjian.io',

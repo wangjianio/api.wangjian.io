@@ -15,7 +15,7 @@ module.exports = function getTrainNo1({ date, from = 'BBB', to = 'BBB', trainCod
   let count = 0;
 
 
-  return get('leftTicket/queryX');
+  return get('leftTicket/query');
 
   function get(c_url) {
     count++;

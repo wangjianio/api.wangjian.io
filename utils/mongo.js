@@ -15,7 +15,7 @@ class MongoInstance {
       return;
     }
     console.log("MongoDB connecting...");
-    return MongoClient.connect(url, { useNewUrlParser: true }).then(db => {
+    return MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }).then(db => {
       console.log("MongoDB connect successful.");
       this.db = db;
       this.status = true;

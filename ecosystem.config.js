@@ -31,7 +31,7 @@ module.exports = {
       // "post-setup": '',
       // 'pre-deploy': '',
       // 'pre-deploy-local': '',
-      'post-deploy': 'yarn install && pm2 restart ecosystem.config.js --env production',
+      'post-deploy': 'npm install && pm2 restart ecosystem.config.js --env production',
     }
   }
 };

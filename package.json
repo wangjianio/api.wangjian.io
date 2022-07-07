@@ -24,7 +24,7 @@
     "chalk": "^2.4.1",
     "express": "^4.16.2",
     "jsonfile": "^5.0.0",
-    "moment": "^2.20.1",
+    "moment": "^2.29.4",
     "mongodb": "^3.1.10",
     "mysql": "^2.16.0",
     "nodemailer": "^4.6.7"
